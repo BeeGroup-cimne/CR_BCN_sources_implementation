@@ -1,0 +1,9 @@
+venv/
+.DS_Store
+.env
+.idea/
+__pycache__/
+config_*.json
+config_files
+data/
+export/

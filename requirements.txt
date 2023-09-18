@@ -1,0 +1,15 @@
+BAC0==21.2.25
+beemeteo @ git+https://github.com/BeeGroup-cimne/beemeteo@v0.2.1
+datadis @ git+https://github.com/BeeGroup-cimne/beedis@v1.0.5
+data-importing-tool @ git+https://github.com/BeeGroup-cimne/beegroup_importing_tool@importing_tool
+numpy-financial==1.0.0
+mrjob==0.7.4
+psutil==5.9.0
+sodapy==2.2.0
+xmltodict==0.13.0
+simplejson==3.17.6
+rdflib==6.2.0
+pyhive==0.6.5
+thrift==0.16.0
+sasl==0.3.1
+thrift_sasl==0.4.3
