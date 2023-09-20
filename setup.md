@@ -4,7 +4,7 @@ Follow the instruction in the [link](https://neo4j.com/docs/operations-manual/cu
 
 Add in the `plugins` directory located at `/var/lib/neo4j/plugins`:
  - the neosemantics
- - the apoc
+ - the spatial
 
 if you face the error `NoSuchMethodError` with `apoc.convert.fromJsonList`, follow the instruction in the [link](https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/2861)
 
@@ -230,7 +230,7 @@ Fast-Load TS (recommended when re-harmonize)
 echo "Datadis TS"
 python3 -m harmonizer -so Datadis -n "https://icaen.cat#" -u icaen -t fast-ts -c
 echo "Nedgia"
-python3 -m harmonizer -so Nedgia -n "https://icaen.cat#" -u icaen -tz "Europe/Madrid" -t fast-ts -c
+python3 -m harmonizer -so Inspire -n "https://icaen.cat#" -u icaen -tz "Europe/Madrid" -t fast-ts -c
 echo "Weather ts"
 python3 -m harmonizer -so Weather -n "https://weather.beegroup-cimne.com#" -t fast-ts -c
 ```
@@ -242,7 +242,7 @@ python3 -m harmonizer -so Weather -n "https://weather.beegroup-cimne.com#" -t fa
 echo "Datadis TS"
 python3 -m harmonizer -so Datadis -n "https://icaen.cat#" -u icaen -t ts -c
 echo "Nedgia"
-python3 -m harmonizer -so Nedgia -n "https://icaen.cat#" -u icaen -tz "Europe/Madrid" -t ts -c
+python3 -m harmonizer -so Inspire -n "https://icaen.cat#" -u icaen -tz "Europe/Madrid" -t ts -c
 echo "Weather ts"
 python3 -m harmonizer -so Weather -n "https://weather.beegroup-cimne.com#" -t ts -c
 ```
