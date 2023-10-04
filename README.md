@@ -3,7 +3,8 @@
 
 The following links will provide information of each data source import tool:
 
-1. [Nedgia (Distributor gas energy)](sources/Inspire/README.md)
+1. [Inspire (Cadaster data)](sources/Inspire/README.md)
+1. [AMB Consumptions](sources/AMB_consumptions/README.md)
 
 
 #### To setup a database, follow [this steps](setup.md)
