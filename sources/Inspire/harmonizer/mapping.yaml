@@ -1,0 +1,49 @@
+prefixes:  
+  bigg: http://bigg-project.eu/ontology#  
+  icaen: https://icat.cat# 
+  geonames: https://www.geonames.org/
+  geo: http://www.w3.org/2003/01/geo/wgs84_pos#
+  rdsf: https://www.w3.org/TR/rdf12-schema#
+  vcard: http://www.w3.org/2006/vcard/ns#
+  foaf:  http://xmlns.com/foaf/0.1#
+  
+mappings:
+
+  municipality:
+    sources:
+      - [ 'data.json~jsonpath', '$.buildings[*]' ]
+    s: $(MUNICIPI_URI)
+    po:
+      - [ geo:sfContains, icat:Building-$(ICAT_ID) ]
+
+  address:
+    sources:
+      - ['data.json~jsonpath', '$.buildings[*]']
+    s: icat:address-$(ADREÇA_URI)
+    po:
+      - [a, vcard:Address]
+      - [vcard:street-address, $(ADREÇA)]
+      - [vcard:postal-code, $(CP)]
+
+
+  cadastralReferences:
+    sources:
+      - ['data.json~jsonpath', '$.buildings[*]']
+    s: icat:CadastralReference-$(REF_CAD)
+    po:
+      - [a, bigg:CadastralParcel]
+      - [rdfs:label, $(REF_CAD)]
+
+  buildings:
+    sources:
+      - ['data.json~jsonpath', '$.buildings[*]']
+
+    s: icat:Building-$(ICAT_ID)
+    po:
+      - [a, bigg:Building]
+      - [bigg:idFromOrganization, $(ICAT_ID)]
+      - [foaf:name, $(NOM)]
+      - [geo:sfContains, icat:CadastralReference-$(REF_CAD)]
+      - [geo:latitude, $(COORDENADES_LAT)]
+      - [geo:longitude, $(COORDENADES_LON)]
+      - [vcard:hasAddress, icat:address-$(ADREÇA_URI)]
