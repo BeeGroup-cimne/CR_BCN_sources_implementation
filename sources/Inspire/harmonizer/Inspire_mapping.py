@@ -41,29 +41,6 @@ json_data = json.load(open("data/Inspire/buildingSpace/data.json"))
 # df_buildings['MUNICIPI_NAME'] = df_buildings['MUNICIPI_ID'].map(df_mun[['MUNICIPI_ID', 'MUNICIPI_DESC']].set_index("MUNICIPI_ID").MUNICIPI_DESC)
 
 """
-# def clean_municipality(df_buildings):
-#     g = rdflib.Graph()
-#     g.parse("ontology/all-geonames-rdf-clean-ES.rdf")
-#     mun_fuzz = partial(fuzzy_dictionary_match,
-#                             map_dict=fuzz_params(g, ['gn:name']),
-#                             default=None)
-#     mun_unique = df_buildings['MUNICIPI_NAME'].unique()
-#     mun_map = {x: mun_fuzz(x) for x in mun_unique}
-#     df_buildings['MUNICIPI_URI'] = df_buildings['MUNICIPI_NAME'].map(mun_map)
-#     return df_buildings
-
-
-# def clean_address(df_buildings):
-#     df_buildings['ADREÇA_URI'] = df_buildings['CP'] + "-" + df_buildings['ADREÇA'].apply(lambda x: slugify(x))
-#     return df_buildings
-#
-
-# def clean_lat_lon(df_buildings):
-#     df_buildings['COORDENADES_LAT'] = df_buildings['COORDENADES'].apply(lambda x: x.split(",")[1])
-#     df_buildings['COORDENADES_LON'] = df_buildings['COORDENADES'].apply(lambda x: x.split(",")[0])
-#     return df_buildings
-
-
 def building_taxonomies(df_point):
 
     # conditionOfConstruction
@@ -127,11 +104,11 @@ def harmonize_buildings_static(data, **kwargs):
     config = utils.utils.read_config(settings.conf_file)
     df_buildings = pd.DataFrame(data)
 
-    # centroid_data = json.load(open("data/Inspire/building/08011buildingsCentroid.geojson"))
-    # geojson_data = json.load(open("data/Inspire/building/08011buildingsGeoJSON.geojson"))
-    #
-    # with open("data/Inspire/building/data.json", "w") as d_file:
-    #     json.dump({"buildings": {"point": centroid_data['features'], "geojson": geojson_data['features']}}, d_file)
+    centroid_data = json.load(open("data/Inspire/download/building/temp/08900_buildings_geom_centroid.geojson"))
+    geojson_data = json.load(open("data/Inspire/download/building/temp/08900_buildings_geom.geojson"))
+
+    with open("data/Inspire/building/data.json", "w") as d_file:
+        json.dump({"buildings": {"point": centroid_data['features'], "geojson": geojson_data['features']}}, d_file)
 
     morph_config = '\n[DataSource1]\nmappings:data/Inspire/building/mapping.yaml\nfile_path: {d_file}\n'
     json_data = json.load(open("data/Inspire/building/data.json"))

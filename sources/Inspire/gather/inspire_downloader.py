@@ -29,7 +29,7 @@ def find_download(url, save_path):
     links = soup.find_all("link")
     for link in links:
         link_url = link["href"]
-        if len(link_url.split('.')) == 9 and link_url.split('.')[7] in cr_bcn_postal_codes and link_url.split('.')[8] == 'zip':
+        if len(link_url.split('.')) == 9 and link_url.split('.')[8] == 'zip':
             download(link_url, link_url.split('.')[7], save_path + '/zip/')
 
 def unzip_directory(zip_directory, unzip_directory):
@@ -40,7 +40,7 @@ def unzip_directory(zip_directory, unzip_directory):
 def get_data():
     # find_download(address_url, "/home/jose/CR_BCN_sources_implementation/data/Inspire/download/address")
     # unzip_directory("/home/jose/CR_BCN_sources_implementation/data/Inspire/download/address/zip", "/home/jose/CR_BCN_sources_implementation/data/Inspire/download/address/unzip")
-    find_download(address_url, "/home/jose/CR_BCN_sources_implementation/data/Inspire/download/building")
+    find_download(building_url, "/home/jose/CR_BCN_sources_implementation/data/Inspire/download/building")
     unzip_directory("/home/jose/CR_BCN_sources_implementation/data/Inspire/download/building/zip", "/home/jose/CR_BCN_sources_implementation/data/Inspire/download/building/unzip")
 
 
@@ -48,19 +48,5 @@ def get_data():
     # get_building_data('data/Inspire/download/building')
 
 if __name__ == '__main__':
-
-    # with open("../C3/configuration.yaml", "r") as stream:
-    #     configuration_data = yaml.safe_load(stream)
-
-    # catastro_data_08 = str(configuration_data.get('paths').get('tempFolderPath')) + 'catastroData/08'
-    #
-    # if not os.path.exists(str(configuration_data.get('paths').get('tempFolderPath')) + 'catastroData'):
-    #     os.mkdir(str(configuration_data.get('paths').get('tempFolderPath')) + 'catastroData')
-    # if not os.path.exists(catastro_data_08):
-    #     os.mkdir(catastro_data_08)
-    # if not os.path.exists(catastro_data_08 + '/unzip'):
-    #     os.mkdir(catastro_data_08 + '/unzip')
-    # if not os.path.exists(catastro_data_08 + '/zip'):
-    #     os.mkdir(catastro_data_08 + '/zip')
     get_data()
 
