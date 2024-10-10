@@ -1,6 +1,6 @@
 # Census Tracts
 
-The censusTracts file contains the census tracts, district and municipality geometry information of barcelona city.
+The censusTracts file contains the census tracts, district geometry information of barcelona city.
 
 ## Gathering tool
 
@@ -16,8 +16,8 @@ python3 -m gather -so census_tracts -f <file> -n <namespace> -u <user_importing>
 
 ## Raw Data Format
 
-The data imported will be stored in the Hbase table, each endpoint that provides a different kind of information will
-have its own row key, that will be generated as follows:
+The information is stored in a graph database called Neo4j, where all data is linked and harmonized according to the
+BIGG ontology.
 
 #### Census Tracts
 
@@ -53,14 +53,28 @@ have its own row key, that will be generated as follows:
 
 ## Harmonization
 
-The harmonization of the data will be done with the following mapping:
+The harmonization of the data will be done with the following [mapping](harmonizer/mapping.yaml):
 
-#### Census Tract=>
+#### Classes=>
 
-| Origin    | Harmonization                    |
-|-----------|----------------------------------|
-| DISTRICTE | districtId                       | 
-| SECCIO    | gn:parentADM5:censusTractId      | 
-| MUNDISSEC | relation (censusTract, district) | 
+| Ontology classes               | URI format                                  | Transformation actions |
+|--------------------------------|---------------------------------------------|------------------------|
+| gn:parentADM5                  | namespace#CensusTract-&lt;censusTractId&gt; |                        |
+| gn:parentADM4, s4city:District | namespace#District-&lt;districtId&gt;       |                        |
+| geosp:Geometry                 | namespace#Polygon-&lt;censusTractId&gt;     |                        |
+
+#### Object Properties=>
+
+| Origin class                   | Destination class | Relation          |
+|--------------------------------|-------------------|-------------------|
+| gn:parentADM5                  | geosp:Geometry    | geosp:hasGeometry |
+| gn:parentADM4, s4city:District | gn:parentADM5     | bigg:hasDivision  |
+
+#### Data properties=>
+
+| Ontology classes | Origin field   | Harmonised field   |
+|------------------|----------------|--------------------|
+| gn:parentADM5    | SECCIO: String | bigg:censusTractId |
+| geosp:Geometry   | coordinates    | geosp:asGeoJSON    |
 
 
