@@ -50,17 +50,29 @@ The data imported will be stored:
 
 ## Harmonization
 
-The harmonization of the data will be done with the following mapping:
+The harmonization of the data will be done with the following [mapping](mapping.yaml):
 
-#### HUTS=>
+#### Classes=>
 
-| Origin              | Harmonization                            |
-|---------------------|------------------------------------------|
-| Categoria           | bigg:TouristBuildingSpace:Category       | 
-| Estat               | bigg:TouristBuildingSpace:State          |
-| Numero d'inscripcio | hutsId                                   |
-| cadastralReference  | Relation(Building, TouristBuildingSpace) |
-| Total places        | bigg:TouristBuildingSpace:Capacity       |
+| Ontology classes          | URI format                                                                  | Transformation actions |
+|---------------------------|-----------------------------------------------------------------------------|------------------------|
+| s4bldg:Building           | namespace#Building-&lt;reference&gt;                                        |                        |
+| bigg:TouristBuildingSpace | namespace#TouristBuildingSpace-&lt;huts_type&gt-&lt;Número d'inscripció&gt; |                        |
+
+#### Object Properties=>
+
+| Origin class    | Destination class         | Relation        |
+|-----------------|---------------------------|-----------------|
+| s4bldg:Building | bigg:TouristBuildingSpace | s4bldg:hasSpace |
+
+#### Data properties=>
+
+| Ontology classes          | Origin field | Harmonised field |
+|---------------------------|--------------|------------------|
+| bigg:TouristBuildingSpace | Categoria    | bigg:Category    |
+| bigg:TouristBuildingSpace | Total places | bigg:Capacity    |
+| bigg:TouristBuildingSpace | Estat        | bigg:State       |
+
 
 
 
