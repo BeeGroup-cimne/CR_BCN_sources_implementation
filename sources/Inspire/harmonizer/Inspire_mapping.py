@@ -1,10 +1,7 @@
 import json
 import os
-import tempfile
-from functools import partial
 import utils
 from neo4j import GraphDatabase
-from slugify import slugify
 
 import settings
 import morph_kgc
@@ -12,36 +9,8 @@ import pandas as pd
 import numpy as np
 import rdflib
 from utils.data_transformations import fuzzy_dictionary_match, fuzz_params
+from helpers import df_to_formatted_json
 
-morph_config = """
-[DataSource1]
-mappings: data/Inspire/building/mapping.yaml
-file_path: {d_file}
-"""
-
-config = utils.utils.read_config(settings.conf_file)
-
-"""    
-import json
-import tempfile
-import os
-import morph_kgc
-import pandas as pd
-import rdflib
-morph_config = '\n[DataSource1]\nmappings:data/Inspire/building/mapping.yaml\nfile_path: {d_file}\n'
-json_data = json.load(open("data/Inspire/building/data.json"))
-
-######buildingspace
-morph_config = '\n[DataSource1]\nmappings:data/Inspire/buildingSpace/mapping.yaml\nfile_path: {d_file}\n'
-json_data = json.load(open("data/Inspire/buildingSpace/data.json"))
-
-
-##df_buildings = pd.DataFrame.from_records(json_data['buildings'])
-# df = pd.DataFrame.from_dict(json_data['buildings']['punto'])
-# df_mun = pd.DataFrame.from_records(json_data['Localitats'])
-# df_buildings['MUNICIPI_NAME'] = df_buildings['MUNICIPI_ID'].map(df_mun[['MUNICIPI_ID', 'MUNICIPI_DESC']].set_index("MUNICIPI_ID").MUNICIPI_DESC)
-
-"""
 def building_taxonomies(df_point):
 
     # conditionOfConstruction
@@ -66,27 +35,6 @@ def address_taxonomy(df_point):
     df_point['properties.specification'] = df_point['properties.specification'].apply(lambda x: specification_dict[x])
     return df_point
 
-def df_to_formatted_json(df, sep="."):
-    """
-    The opposite of json_normalize
-    """
-    result = []
-    for idx, row in df.iterrows():
-        parsed_row = {}
-        for col_label,v in row.items():
-            keys = col_label.split(sep)
-
-            current = parsed_row
-            for i, k in enumerate(keys):
-                if i==len(keys)-1:
-                    current[k] = v
-                else:
-                    if k not in current.keys():
-                        current[k] = {}
-                    current = current[k]
-        result.append(parsed_row)
-    return result
-
 def get_address_street_name(df_point):
 
     address_street_names_df = pd.read_csv("data/Inspire/address/08_address_th.csv", usecols = ['gml_id','text'])
@@ -105,7 +53,7 @@ def harmonize_buildings_static(data, **kwargs):
     config = utils.utils.read_config(settings.conf_file)
     # df_buildings = pd.DataFrame(data)
 
-    centroid_data = json.load(open("data/Inspire/building/08900_buildings_geom_centroid.geojson"))
+    centroid_data = json.load(open("data/Inspire/building/08900_buildings_geom_centroid_ba_ct_pc.geojson"))
     geojson_data = json.load(open("data/Inspire/building/08900_buildings_geom.geojson"))
 
     with open("data/Inspire/building/data.json", "w") as d_file:
