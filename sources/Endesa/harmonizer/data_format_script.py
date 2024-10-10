@@ -1,9 +1,10 @@
-import pandas as pd
-import ftfy
-from fuzzywuzzy import process
 
-# def merge_dataframes(df1, df2):
-# def READ_dataframes(df1, df2):
+from fuzzywuzzy import process, fuzz
+import pandas as pd
+from rapidfuzz import fuzz, process
+from scipy.optimize import linear_sum_assignment
+import numpy as np
+
 def funcion_keep(dup_rows):
     return dup_rows.loc[dup_rows['Nº CUPS'] == dup_rows['Núm. CUPS']]
 
@@ -44,62 +45,75 @@ if __name__ == '__main__':
     # consumptions_df['address'] = consumptions_df['address'].astype(str)
     # consumptions_df['address'] = consumptions_df['address'].apply(lambda x: x.lower())
 
+    # 08019-08022(2022-2023)
+    address_df = pd.read_csv('sources/Endesa/harmonizer/a.csv', dtype=str)
+
     # address_df = pd.read_csv('sources/Endesa/harmonizer/a.csv', dtype=str)
     # address_df['address'] = address_df['street_name'] + ' ' + address_df['street_number']
     # address_df['address'] = address_df['address'].apply(lambda x: ' '.join(x.split(' ')[1:]).lower())
-    # address_filtered_df = address_df[address_df.CODPOS.isin(['08030', '08033'])]
-
-    # join 08033-08030(2022/2023)
-    # fuzzy_consumptions_df = fuzzy_merge(consumptions_df, address_filtered_df, 'address', 'address', threshold=95)
-    # consumption_merge_df = pd.merge(fuzzy_consumptions_df, address_filtered_df, left_on='matches',
-    #                                 right_on='address', how='left')
-    # consumption_merge_df.drop(['localId_y', 'namespace_y',
-    #                            'horizontalGeometryEstimatedAccuracy',
-    #                            'horizontalGeometryEstimatedAccuracy_uom', 'currentUse',
-    #                            'numberOfBuildingUnits', 'numberOfDwellings',
-    #                            'numberOfFloorsAboveGround', 'officialAreaReference', 'value',
-    #                            'value_uom', 'cadastral_zonning_reference', 'gml_id',
-    #                            'estimatedAccuracy', 'estimatedAccuracy_uom', 'localId', 'namespace',
-    #                            'LocalisedCharacterString', 'nationalCadastalZoningReference',
-    #                            'originalMapScaleDenominator', 'height_above_sea_level', 'CUSEC',
-    #                            'CUMUN', 'CUDIS', 'codi_districte', 'nom_districte',
-    #                            'codi_barri', 'nom_barri', 'gml_id_x', 'localId_x',
-    #                            'namespace_x', 'specification', 'street_number', 'geometry',
-    #                            'street_name', 'cat_ref', 'gml_id_y', 'conditionOfConstruction', 'address_y'],
-    #                           inplace=True, axis=1)
-    #
-    # consumption_merge_df.to_csv('sources/Endesa/harmonizer/Electricity2023-95.csv')
-
-    # 08019-08022(2022-2023)
-    address_df = pd.read_csv('sources/Endesa/harmonizer/a.csv', dtype=str)
-    address_df['address'] = address_df['street_name'] + ' ' + address_df['street_number']
-    address_df['address'] = address_df['address'].apply(lambda x: ' '.join(x.split(' ')[1:]).lower())
-    address_filtered_df = address_df[address_df.CODPOS.isin(['08019', '08022'])]
+    # address_df = address_df[address_df.CODPOS.isin(['08019', '08022'])]
 
     for sheet_name, consumptions_df in pd.read_excel('data/Endesa/Agrupado_Ayunt_Codigos_Postales_08019-08022_Barcelona.xlsx', sheet_name=None).items():
+        # remove street_number and num_contract 0
+        consumptions_df = consumptions_df[(consumptions_df['STREET_NUMBER__C'] != 0) & (consumptions_df['NUM_CONTRATOS'] != 0)].reset_index(drop=True)
+        # fuzzy de los valores unicos del nombre de la calle respecto a calle de catastro unicos para hacer un diccionario
+
+        consumptions_df['street_name'] = consumptions_df['STREET_TYPE__C'] + ' ' + consumptions_df['STREET_DESCRIPTION__C']
+        consumptions_street_names_uniques = consumptions_df['street_name'].unique()
+        address_street_names_uniques = address_df['street_name'].unique()
+        street_name_dict = {}
+        for item in consumptions_street_names_uniques:
+            match = process.extractOne(item, address_street_names_uniques, scorer=fuzz.ratio)
+            street_name_dict[item] = match[0]
+        # Map street name
+        consumptions_df['street_name_mapped'] = consumptions_df['street_name'].map(street_name_dict)
+
+        # match perfecto entre nombre de calle mapeado y numero
         consumptions_df['STREET_NUMBER__C'] = consumptions_df['STREET_NUMBER__C'].astype(str)
-        consumptions_df['address'] = consumptions_df['STREET_DESCRIPTION__C'] + ' ' + consumptions_df[
+        consumptions_df['address'] = consumptions_df['street_name_mapped'] + ' ' + consumptions_df[
             'STREET_NUMBER__C']
         consumptions_df['address'] = consumptions_df['address'].astype(str)
         consumptions_df['address'] = consumptions_df['address'].apply(lambda x: x.lower())
 
+        address_df['address'] = address_df['street_name'] + ' ' + address_df['street_number']
+        address_df['address'] = address_df['address'].apply(lambda x: x.lower())
 
-        fuzzy_consumptions_df = fuzzy_merge(consumptions_df, address_filtered_df, 'address', 'address', threshold=95)
-        consumption_merge_df = pd.merge(fuzzy_consumptions_df, address_filtered_df, left_on='matches',
-                                    right_on='address', how='left')
-        consumption_merge_df.drop(['localId_y', 'namespace_y',
-           'horizontalGeometryEstimatedAccuracy',
-           'horizontalGeometryEstimatedAccuracy_uom', 'currentUse',
-           'numberOfBuildingUnits', 'numberOfDwellings',
-           'numberOfFloorsAboveGround', 'officialAreaReference', 'value',
-           'value_uom', 'cadastral_zonning_reference', 'gml_id',
-           'estimatedAccuracy', 'estimatedAccuracy_uom', 'localId', 'namespace',
-           'LocalisedCharacterString', 'nationalCadastalZoningReference',
-           'originalMapScaleDenominator', 'height_above_sea_level', 'CUSEC',
-           'CUMUN', 'CUDIS', 'codi_districte', 'nom_districte',
-           'codi_barri', 'nom_barri', 'gml_id_x', 'localId_x',
-           'namespace_x', 'specification', 'street_number', 'geometry',
-           'street_name', 'cat_ref', 'gml_id_y', 'conditionOfConstruction', 'address_y'], inplace=True, axis=1)
+        # difuse matrix
+        score_matrix = np.zeros((len(consumptions_df), len(address_df)))
+        for i, a in enumerate(consumptions_df['address']):
+            for j, b in enumerate(address_df['address']):
+                score_matrix[i, j] = fuzz.ratio(a, b)
+        # convert to cost matrix
+        cost_matrix = 100 - score_matrix
+        # hungarian algorithm
+        row_ind, col_ind = linear_sum_assignment(cost_matrix)
+        # threshold
+        score_threshold = 97
+        matches = [None] * len(consumptions_df)
+        for row, col in zip(row_ind, col_ind):
+            score = 100 - cost_matrix[row, col]
+            if score >= score_threshold:
+                matches[row] = address_df['address'][col]
+        consumptions_df['match'] = matches
+        # merge entre consumptions_df address_df
+        merged_df = pd.merge(consumptions_df, address_df, left_on='match', right_on='address', how='left')
+        merged_df.drop(['localId_y', 'namespace_y',
+                                   'horizontalGeometryEstimatedAccuracy',
+                                   'horizontalGeometryEstimatedAccuracy_uom', 'currentUse',
+                                   'numberOfBuildingUnits', 'numberOfDwellings',
+                                   'numberOfFloorsAboveGround', 'officialAreaReference', 'value',
+                                   'value_uom', 'cadastral_zonning_reference', 'gml_id',
+                                   'estimatedAccuracy', 'estimatedAccuracy_uom', 'localId', 'namespace',
+                                   'LocalisedCharacterString', 'nationalCadastalZoningReference',
+                                   'originalMapScaleDenominator', 'height_above_sea_level', 'CUSEC',
+                                   'CUMUN', 'CUDIS', 'codi_districte', 'nom_districte',
+                                   'codi_barri', 'nom_barri', 'gml_id_x', 'localId_x',
+                                   'namespace_x', 'specification', 'geometry',
+                                    'cat_ref', 'gml_id_y', 'conditionOfConstruction', 'address_y'],
+                                  inplace=True, axis=1)
 
-        consumption_merge_df.to_csv(f"sources/Endesa/harmonizer/Electricity08019-08022-{sheet_name}-95.csv")
+        merged_df.to_csv(f"sources/Endesa/harmonizer/Electricity08019-08022-{sheet_name}-97.csv")
+
+
+
 

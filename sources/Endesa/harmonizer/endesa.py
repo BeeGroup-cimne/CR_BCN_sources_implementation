@@ -1,8 +1,6 @@
 import hashlib
 import json
 import os
-import tempfile
-from functools import partial
 
 import numpy as np
 import utils
@@ -11,29 +9,7 @@ import settings
 import morph_kgc
 import pandas as pd
 from utils.hbase import save_to_hbase
-
-
-def df_to_formatted_json(df, sep="."):
-    """
-    The opposite of json_normalize
-    """
-    result = []
-    for idx, row in df.iterrows():
-        parsed_row = {}
-        for col_label, v in row.items():
-            keys = col_label.split(sep)
-
-            current = parsed_row
-            for i, k in enumerate(keys):
-                if i == len(keys) - 1:
-                    current[k] = v
-                else:
-                    if k not in current.keys():
-                        current[k] = {}
-                    current = current[k]
-        result.append(parsed_row)
-    return result
-
+from helpers import df_to_formatted_json
 
 def harmonize_endesa(data, **kwargs):
     config = utils.utils.read_config(settings.conf_file)
