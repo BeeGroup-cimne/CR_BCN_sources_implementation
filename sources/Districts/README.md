@@ -1,25 +1,25 @@
-# Municipalities
+# Districts
 
-The Municipalities file contains the municipalities geometry information of barcelona city.
+The districts file contains the district geometry information of barcelona city.
 
 ## Gathering tool
 
-This data source comes in the format of an GPKG file.
+This data source comes in the format of an GeoJSON file.
 
 #### RUN import application
 
 To run the import application, execute the python script with the following parameters:
 
 ```bash
-python3 -m gather -so municipalities -f <file> -n <namespace> -u <user_importing> -tz <file_timezone> -st <storage>
+python3 -m gather -so districts -f <file> -n <namespace> -u <user_importing> -tz <file_timezone> -st <storage>
 ```
 
 ## Raw Data Format
 
-The data imported will be stored in the Hbase table, each endpoint that provides a different kind of information will
-have its own row key, that will be generated as follows:
+The information is stored in a graph database called Neo4j, where all data is linked and harmonized according to the
+BIGG ontology.
 
-#### Municipalities
+#### Districts
 
 ````json
 {
@@ -56,13 +56,28 @@ have its own row key, that will be generated as follows:
 
 ## Harmonization
 
-The harmonization of the data will be done with the following mapping:
+The harmonization of the data will be done with the following [mapping](harmonizer/mapping.yaml):
 
-#### Building=>
+#### Classes=>
 
-| Origin    | Harmonization                                               |
-|-----------|-------------------------------------------------------------|
-| MUNICIPI  | municipalityId                                              | 
-| DISTRICTE | gn:parentADM4:districtId, Relation (municipality, district) |
+| Ontology classes               | URI format                              | Transformation actions |
+|--------------------------------|-----------------------------------------|------------------------|
+| gn:parentADM4, s4city:District | namespace#District-&lt;DISTRICTE&gt;    |                        |
+| gn:parentADM3                  | namespace#Municipality-&lt;MUNICIPI&gt; |                        |
+| geosp:Geometry                 | namespace#Polygon-&lt;DISTRICTE&gt;     |                        |
+
+#### Object Properties=>
+
+| Origin class                   | Destination class                     | Relation                 |
+|--------------------------------|---------------------------------------|--------------------------|
+| gn:parentADM4, s4city:District | geosp:Geometry                        | geosp:hasGeometry        |
+| gn:parentADM3                  | gn:parentADM4, s4city:District        | bigg:hasDivision         |
+
+#### Data properties=>
+
+| Ontology classes               | Origin field | Harmonised field |
+|--------------------------------|--------------|------------------|
+| gn:parentADM4, s4city:District | DISTRICTE    | bigg:districtId  |
+| geosp:Geometry                 | coordinates  | geosp:asGeoJSON  |
 
 
