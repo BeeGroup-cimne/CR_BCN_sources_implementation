@@ -8,43 +8,9 @@ import pandas as pd
 import utils
 from neo4j import GraphDatabase
 from utils.hbase import save_to_hbase
-
+from helpers import df_to_formatted_json
 import settings
 
-config = utils.utils.read_config(settings.conf_file)
-
-"""    
-import json
-import tempfile
-import os
-import morph_kgc
-import pandas as pd
-import rdflib
-morph_config = '\n[DataSource1]\nmappings:data/AMB_consumptions/mapping.yaml\nfile_path: {d_file}\n'
-json_data = json.load(open("data/AMB_consumptions/data.json"))
-
-"""
-
-def df_to_formatted_json(df, sep="."):
-    """
-    The opposite of json_normalize
-    """
-    result = []
-    for idx, row in df.iterrows():
-        parsed_row = {}
-        for col_label,v in row.items():
-            keys = col_label.split(sep)
-
-            current = parsed_row
-            for i, k in enumerate(keys):
-                if i==len(keys)-1:
-                    current[k] = v
-                else:
-                    if k not in current.keys():
-                        current[k] = {}
-                    current = current[k]
-        result.append(parsed_row)
-    return result
 
 def harmonize_AMB_consumptions(data, **kwargs):
     config = utils.utils.read_config(settings.conf_file)
@@ -103,6 +69,8 @@ def harmonize_AMB_consumptions(data, **kwargs):
         'V306_SCT.Scons.total']
     df_data_consumptions['electricityValue'] = df_data_consumptions['Total electricitat (kWh/m²)'] * \
                                                df_data_consumptions['V306_SCT.Scons.total']
+
+    df_data_consumptions.to_csv("data/AMB_consumptions/amb08900.csv", index=False)
 
     electricity_device_table = f"harmonized_online_EnergyConsumptionGridElectricity_100_SUM_{freq}_{user}"
     save_to_hbase(df_data_consumptions.to_dict(orient="records"), electricity_device_table, hbase_conn,
