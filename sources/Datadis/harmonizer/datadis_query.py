@@ -1,21 +1,13 @@
 import copy
 import csv
 import datetime as dt
-import forecastio
-import multiprocessing.pool as mp
+
 import os
-import pytz
-import re
-import sys
 import time
-import urllib
 import yaml
-import numpy as np
 import pandas as pd
 from beedis.datadis import datadis, ENDPOINTS
 from dateutil.relativedelta import relativedelta
-from pymongo import MongoClient
-
 
 def get_postal_codes(db):
     postal_codes = []
@@ -33,11 +25,10 @@ def get_postal_codes(db):
                 postal_codes.append(x['entityId'])
     return postal_codes
 
-def datadis_query(db, configuration_data):
+def datadis_query(configuration_data):
 
-    # crbcn postalCodes ['08033', '08034', '08002', '08005', '08004', '08003', '08035', '08032', '08010', '08017', '08028', '08021', '08026', '08019', '08027', '08018', '08020', '08016', '08029', '08011', '08042', '08008', '08037', '08030', '08039', '08006', '08001', '08038', '08007', '08031', '08009', '08036', '08040', '08014', '08013', '08025', '08022', '08041', '08023', '08024', '08012', '08015']
     postal_codes = ['08033', '08034', '08002', '08005', '08004', '08003', '08035', '08032', '08010', '08017', '08028', '08021', '08026', '08019', '08027', '08018', '08020', '08016', '08029', '08011', '08042', '08008', '08037', '08030', '08039', '08006', '08001', '08038', '08007', '08031', '08009', '08036', '08040', '08014', '08013', '08025', '08022', '08041', '08023', '08024', '08012', '08015']
-    ############################
+
     datadis.connection(configuration_data.get('datadis').get('user'), configuration_data.get('datadis').get('password'),
                        timezone="UTC")
     time_discrimination = configuration_data.get('datadis').get('timeDiscrimination')
@@ -81,9 +72,10 @@ def datadis_query(db, configuration_data):
             time.sleep(0.1)
 
 if __name__ == '__main__':
+    # configuration yaml file
     with open("../C3/configuration.yaml", "r") as stream:
         configuration_data = yaml.safe_load(stream)
 
-    datadis_query(db, configuration_data)
+    datadis_query(configuration_data)
 
 
