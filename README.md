@@ -1,4 +1,7 @@
 # CR_BCN_sources_implementation
+
+![barcelona](resources/barcelona.png)
+
 ## Data sources index
 
 The following links will provide information of each data source import tool:
