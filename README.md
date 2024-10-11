@@ -24,3 +24,9 @@ The following links will provide information of each data source import tool:
 16. [Weather UrbClim](sources/Weather/README.md)
 
 #### To setup a database, follow [this steps](setup.md)
+
+## Autores
+- Jose Manuel Broto - jmbroto@cimne.upc.edu
+- Gerard Mor - gmor@cimne.upc.edu
+- Eloi Gabaldón - egabaldon@cimne.upc.edu
+Copyright (c) 2024 Jose Manuel Broto, Gerard Mor, Eloi Gabaldón
