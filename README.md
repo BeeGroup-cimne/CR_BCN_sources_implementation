@@ -25,7 +25,7 @@ The following links will provide information of each data source import tool:
 
 #### To setup a database, follow [this steps](setup.md)
 
-## Autores
+## Authors
 - Jose Manuel Broto - jmbroto@cimne.upc.edu
 - Gerard Mor - gmor@cimne.upc.edu
 - Eloi Gabaldón - egabaldon@cimne.upc.edu
