@@ -11,13 +11,13 @@ This data source comes in the format of an GPKG file.
 To run the import application, execute the python script with the following parameters:
 
 ```bash
-python3 -m gather -so AMB_consumptions -f <file> -n <namespace> -u <user_importing> -tz <file_timezone> -st <storage>
+python3 -m gather -so municipalities -f <file> -n <namespace> -u <user_importing> -tz <file_timezone> -st <storage>
 ```
 
 ## Raw Data Format
 
-The data imported will be stored in the Hbase table, each endpoint that provides a different kind of information will
-have its own row key, that will be generated as follows:
+The information is stored in a graph database called Neo4j, where all data is linked and harmonized according to the
+BIGG ontology.
 
 #### Municipalities
 
@@ -56,14 +56,28 @@ have its own row key, that will be generated as follows:
 
 ## Harmonization
 
-The harmonization of the data will be done with the following mapping:
+The harmonization of the data will be done with the following [mapping](harmonizer/mapping.yaml):
 
-#### Municipalities=>
+#### Classes=>
 
-| Origin   | Harmonization                |
-|----------|------------------------------|
-| CODIMUNI | gn:parentADM3:officialName   | 
-| NOMMUNI  | gn:parentADM3:municipalityId | 
+| Ontology classes | URI format                              | Transformation actions |
+|------------------|-----------------------------------------|------------------------|
+| gn:parentADM3    | namespace#Municipality-&lt;CODIMUNI&gt; |                        |
+| geosp:Geometry   | namespace#Polygon-&lt;CODIMUNI&gt;      |                        |
+
+#### Object Properties=>
+
+| Origin class  | Destination class | Relation          |
+|---------------|-------------------|-------------------|
+| gn:parentADM3 | geosp:Geometry    | geosp:hasGeometry |
+
+#### Data properties=>
+
+| Ontology classes | Origin field     | Harmonised field    |
+|------------------|------------------|---------------------|
+| gn:parentADM3    | NOMMUNI: String  | gn:officialName     |
+| gn:parentADM3    | CODIMUNI: String | bigg:municipalityId |
+| geosp:Geometry   | coordinates      | geosp:asGeoJSON     |
 
 
 
