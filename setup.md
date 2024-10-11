@@ -5,25 +5,42 @@ Follow the instruction in the [link](https://neo4j.com/docs/operations-manual/cu
 Add in the `plugins` directory located at `/var/lib/neo4j/plugins`:
  - the neosemantics
  - the spatial
+ - the apoc
 
 if you face the error `NoSuchMethodError` with `apoc.convert.fromJsonList`, follow the instruction in the [link](https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/2861)
 
 # Set up the database (first time)
 - login and change the password.
 - run in neo4j:
-```cypher 
-CREATE CONSTRAINT n10s_unique_uri ON (r:Resource) ASSERT r.uri IS UNIQUE
+```cypher
+CREATE CONSTRAINT n10s_unique_uri FOR (r:Resource) REQUIRE r.uri IS UNIQUE;
 ```
 # Set up the database (all the time after reset)
 - run in neo4j:
 ```cypher
 CALL n10s.graphconfig.init({ keepLangTag: true, handleMultival:"ARRAY", multivalPropList:["http://bigg-project.eu/ontology#kpiType","http://bigg-project.eu/ontology#shortName","http://www.w3.org/2000/01/rdf-schema#label", "http://www.w3.org/2000/01/rdf-schema#comment", "http://www.geonames.org/ontology#officialName"]});
-CALL n10s.nsprefixes.add("bigg","http://bigg-project.eu/ontology#");
-CALL n10s.nsprefixes.add("geo","http://www.geonames.org/ontology#");
-CALL n10s.nsprefixes.add("unit","http://qudt.org/vocab/unit/");
+CALL n10s.nsprefixes.add("schema","https://schema.org/");
 CALL n10s.nsprefixes.add("qudt","http://qudt.org/schema/qudt/");
-CALL n10s.nsprefixes.add("wgs","http://www.w3.org/2003/01/geo/wgs84_pos#");
+CALL n10s.nsprefixes.add("vaem","http://www.linkedmodel.org/schema/vaem#");
+CALL n10s.nsprefixes.add("s4city","https://saref.etsi.org/saref4city/");
+CALL n10s.nsprefixes.add("owl","http://www.w3.org/2002/07/owl#");
+CALL n10s.nsprefixes.add("s4bldg","https://saref.etsi.org/saref4bldg/");
+CALL n10s.nsprefixes.add("gn","https://www.geonames.org/ontology#");
+CALL n10s.nsprefixes.add("saref","https://saref.etsi.org/core/");
+CALL n10s.nsprefixes.add("skos","http://www.w3.org/2004/02/skos/core#");
+CALL n10s.nsprefixes.add("bigg","http://bigg-project.eu/ld/ontology#");
 CALL n10s.nsprefixes.add("rdfs","http://www.w3.org/2000/01/rdf-schema#");
+CALL n10s.nsprefixes.add("purl","http://purl.org/dc/terms/");
+CALL n10s.nsprefixes.add("vcard","http://www.w3.org/2006/vcard/ns#");
+CALL n10s.nsprefixes.add("ssn","http://www.w3.org/ns/ssn/");
+CALL n10s.nsprefixes.add("geo","http://www.w3.org/2003/01/geo/wgs84_pos#");
+CALL n10s.nsprefixes.add("rdf","http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+CALL n10s.nsprefixes.add("geosp","http://www.opengis.net/ont/geosparql#");
+CALL n10s.nsprefixes.add("s4syst","https://saref.etsi.org/saref4syst/");
+CALL n10s.nsprefixes.add("s4agri","https://saref.etsi.org/saref4agri/");
+CALL n10s.nsprefixes.add("time","http://www.w3.org/2006/time#");
+CALL n10s.nsprefixes.add("foaf","http://xmlns.com/foaf/0.1/");
+
 ```
 * add other namespaces if required.
 
@@ -105,99 +122,6 @@ python3 -m harmonizer -so Datadis -n "https://icaen.cat#" -u icaen -t static -c
 python3 -m harmonizer -so CEEC3X -n "https://icaen.cat#" -u icaen -c
 python3 -m harmonizer -so OpenData -n "https://icaen.cat#" -u icaen -c
 ```
-
-<details>
-  <summary>Load from KAFKA (online harmonization)</summary>
-
-1. start the harmonizer and store daemons:
-```bash
-python3 -m harmonizer
-python3 -m store
-```
-
-2. Launch the gather utilities
-
-```bash
-python3 -m gather -so GPG -f "data/GPG/2022-10 SIME-DadesdelsImmobles v2.xlsx" -n "https://icaen.cat#" -st kafka -u icaen
-python3 -m gather -so Gemweb -st kafka
-python3 -m gather -so Genercat -f data/genercat/data2.xls -u icaen -n "https://icaen.cat#" -st kafka
-python3 -m gather -so CEEC3X -f "data/CEEC3X/ceec3x-01639-2TX229LJ9.xml" -b 01639 -id 2TX229LJ9 -n "https://icaen.cat#" -u icaen  -st kafka
-
-python3 -m gather -so Datadis # MR-Job
-python3 -m gather -so Weather # MR-Job
-python3 -m gather -so OpenData -n "https://icaen.cat#" -u icaen -st kafka
-
-```
-</details>
-
-
-### 3.3. Create a new Tariff and co2Emissions for the organization
-The creation queries are made custom or manually or by the UI
-
-```cypher
-Match (o:bigg__Organization{userID:"icaen"})
-Match (s:SimpleTariffSource) where (s)<-[:hasSource]-(o)
-Merge (t:bigg__Tariff:Resource{bigg__tariffCompany:"CIMNE", bigg__tariffName: "electricdefault", uri: "https://icaen.cat#TARIFF-SimpleTariffSource-icaen-electricdefault"})-[:importedFromSource]->(s)
-return t;
-
-Match (o:bigg__Organization{userID:"icaen"})
-Match (s:SimpleTariffSource) where (s)<-[:hasSource]-(o)
-Merge (t:bigg__Tariff:Resource{bigg__tariffCompany:"CIMNE", bigg__tariffName: "gasdefault", uri: "https://icaen.cat#TARIFF-SimpleTariffSource-icaen-gasdefault"})-[:importedFromSource]->(s)
-return t;
-
-Match (o:bigg__Organization{userID:"icaen"})
-Match (s:CO2EmissionsSource) where (s)<-[:hasSource]-(o)
-Merge (t:bigg__CO2EmissionsFactor:Resource{bigg__CO2EmissionsStation:"cataloniaElectric", wgs__lat:40.959, wgs__lon:1.485, uri: "https://icaen.cat#CO2EMISIONS-cataloniaElectric"})-[:importedFromSource]->(s)
-return t;
-
-Match (o:bigg__Organization{userID:"icaen"})
-Match (s:CO2EmissionsSource) where (s)<-[:hasSource]-(o)
-Merge (t:bigg__CO2EmissionsFactor:Resource{bigg__CO2EmissionsStation:"cataloniaGas", wgs__lat:40.959, wgs__lon:1.485, uri: "https://icaen.cat#CO2EMISIONS-cataloniaGas"})-[:importedFromSource]->(s)
-return t;
-```
-### 3.4. Link all buildings to tariff and CO2Emissions
-The creation queries are made custom or manually or by the UI
-
-```
-Match (bigg__Organization{userID:"icaen"})-[:hasSource]->(:SimpleTariffSource)<-[:importedFromSource]-(t:bigg__Tariff{bigg__tariffName:"electricdefault"})
-Match (dt {uri:"http://bigg-project.eu/ontology#Electricity"})
-Match (bigg__Organization{userID:"icaen"})-[:bigg__hasSubOrganization*]->()-[:bigg__managesBuilding]->()-[:bigg__hasSpace]->()-[:bigg__hasUtilityPointOfDelivery]->(s)-[:bigg__hasUtilityType]->(dt)
-Merge (c:bigg__ContractedTariff:Resource{bigg__contractStartDate: datetime("2000-01-01T00:00:00.000+0100"), bigg__contractName:"electricdefault", uri: s.uri+"_tariff"})
-Merge (s)-[:bigg__hasContractedTariff]->(c)
-Merge (c)-[:bigg__hasTariff]->(t)
-return t;
-
-Match (bigg__Organization{userID:"icaen"})-[:hasSource]->(:SimpleTariffSource)<-[:importedFromSource]-(t:bigg__Tariff{bigg__tariffName:"gasdefault"})
-Match (dt {uri:"http://bigg-project.eu/ontology#Gas"})
-Match (bigg__Organization{userID:"icaen"})-[:bigg__hasSubOrganization*]->()-[:bigg__managesBuilding]->()-[:bigg__hasSpace]->()-[:bigg__hasUtilityPointOfDelivery]->(s)-[:bigg__hasUtilityType]->(dt)
-Merge (c:bigg__ContractedTariff:Resource{bigg__contractStartDate: datetime("2000-01-01T00:00:00.000+0100"), bigg__contractName:"gasdefault", uri: s.uri+"_tariff"})
-Merge (s)-[:bigg__hasContractedTariff]->(c)
-Merge (c)-[:bigg__hasTariff]->(t)
-return t;
-
-Match (bigg__Organization{userID:"icaen"})-[:hasSource]->(:CO2EmissionsSource)<-[:importedFromSource]-(co2:bigg__CO2EmissionsFactor{bigg__CO2EmissionsStation:"cataloniaElectric"})
-Match (dt {uri:"http://bigg-project.eu/ontology#Electricity"})
-Match (bigg__Organization{userID:"icaen"})-[:bigg__hasSubOrganization*]->()-[:bigg__managesBuilding]->()-[:bigg__hasSpace]->()-[:bigg__hasUtilityPointOfDelivery]->(s)-[:bigg__hasUtilityType]->(dt)
-Merge (s)-[:bigg__hasCO2EmissionsFactor]->(co2)
-return co2;
-
-Match (bigg__Organization{userID:"icaen"})-[:hasSource]->(:CO2EmissionsSource)<-[:importedFromSource]-(co2:bigg__CO2EmissionsFactor{bigg__CO2EmissionsStation:"cataloniaGas"})
-Match (dt {uri:"http://bigg-project.eu/ontology#Gas"})
-Match (bigg__Organization{userID:"icaen"})-[:bigg__hasSubOrganization*]->()-[:bigg__managesBuilding]->()-[:bigg__hasSpace]->()-[:bigg__hasUtilityPointOfDelivery]->(s)-[:bigg__hasUtilityType]->(dt)
-Merge (s)-[:bigg__hasCO2EmissionsFactor]->(co2)
-return co2;
-```
-
-### 3.5. Load tariff and co2 timeseries
-```bash
-python3 -m harmonizer -so SimpleTariff -u icaen -mp "http://bigg-project.eu/ontology#Price" -pp "http://bigg-project.eu/ontology#EnergyConsumptionGridElectricity" -ppu "http://qudt.org/vocab/unit/KiloW-HR" -unit "http://qudt.org/vocab/unit/Euro" -n "https://icaen.cat#" -c 
-python3 -m harmonizer -so SimpleTariff -u icaen -mp "http://bigg-project.eu/ontology#Price" -pp "http://bigg-project.eu/ontology#EnergyConsumptionGas" -ppu "http://qudt.org/vocab/unit/KiloW-HR" -unit "http://qudt.org/vocab/unit/Euro" -n "https://icaen.cat#" -c 
-python3 -m harmonizer -so CO2Emissions -u icaen -mp "http://bigg-project.eu/ontology#CO2Emissions" -p "http://bigg-project.eu/ontology#EnergyConsumptionGridElectricity" -pu "http://qudt.org/vocab/unit/KiloW-HR" -unit "http://bigg-project.eu/ontology#KiloGM-CO2" -n "https://icaen.cat#" -c 
-python3 -m harmonizer -so CO2Emissions -u icaen -mp "http://bigg-project.eu/ontology#CO2Emissions" -p "http://bigg-project.eu/ontology#EnergyConsumptionGas" -pu "http://qudt.org/vocab/unit/KiloW-HR" -unit "http://bigg-project.eu/ontology#KiloGM-CO2" -n "https://icaen.cat#" -c 
-```
-
-<details>
-<summary>Load from KAFKA</summary>
 
 1. start the harmonizer and store daemons:
 ```bash
@@ -295,9 +219,8 @@ Merge(a)-[:bigg__hasAreaType]->(at)
 Merge(s)-[:bigg__isAssociatedWithElement]->(e)
 Merge(s)-[:bigg__hasBuildingSpaceUseType{selected:true}]->(ut)
 ```
-</details>
 
-----
+
 
 ## 4. Infraestructures Organization 
  - namespace: `https://infraestructures.cat#`
@@ -497,43 +420,7 @@ Merge (a:Authority {name: 'ROLE_BUILDING_ADMINISTRATOR'});
 Merge (a:Authority {name: 'ROLE_BUILDING_USER'});
 ```
 
-### 6.3 Update organizations
-```cypher
-// Bulgaria
-MATCH (l1:Language{iso__code: 'bg'}) 
-MATCH (l2:Language{iso__code: 'en'}) 
-MATCH (o1:bigg__Organization{userID:'bulgaria'}) 
-Merge (o1)-[:hasAvailableLanguage {selected: false, languageByDefault: false}]->(l1)
-Merge (o1)-[:hasAvailableLanguage {selected: true, languageByDefault: true}]->(l2); 
 
-// Generalitat
-MATCH (l1:Language{iso__code: 'ca'}) 
-MATCH (l2:Language{iso__code: 'es'}) 
-MATCH (l3:Language{iso__code: 'en'}) 
-MATCH (o1:bigg__Organization{userID:'icaen'}) 
-Merge (o1)-[:hasAvailableLanguage {selected: true, languageByDefault: true}]->(l1)
-Merge (o1)-[:hasAvailableLanguage {selected: false, languageByDefault: false}]->(l2)
-Merge (o1)-[:hasAvailableLanguage {selected: false, languageByDefault: false}]->(l3)
-
-// Infraestructures
-MATCH (l1:Language{iso__code: 'ca'}) 
-MATCH (l2:Language{iso__code: 'es'}) 
-MATCH (l3:Language{iso__code: 'en'}) 
-MATCH (o1:bigg__Organization{userID:'icat'}) 
-Merge (o1)-[:hasAvailableLanguage {selected: true, languageByDefault: true}]->(l1)
-Merge (o1)-[:hasAvailableLanguage {selected: false, languageByDefault: false}]->(l2)
-Merge (o1)-[:hasAvailableLanguage {selected: false, languageByDefault: false}]->(l3)
-```
-
-### 6.4 Update organization settings
-```cypher
-Match(n:bigg__Organization{userID:"bulgaria"}) 
-Merge (n)-[:hasConfig]->(c:AppConfiguration{createBuilding: true, epc:"bulgaria", uploadManualData: true});
-Match(n:bigg__Organization{userID:"icaen"}) 
-Merge (n)-[:hasConfig]->(c:AppConfiguration{createBuilding: false, epc:"CEEX3X", uploadManualData: false});
-Match(n:bigg__Organization{userID:"icat"}) 
-Merge (n)-[:hasConfig]->(c:AppConfiguration{createBuilding: false, epc:"CEEX3X", uploadManualData: false});
-```
 
 ### 6.5 Create superuser 
 ```cypher

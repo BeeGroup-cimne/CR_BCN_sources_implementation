@@ -50,7 +50,7 @@ The data imported will be stored:
 
 ## Harmonization
 
-The harmonization of the data will be done with the following [mapping](mapping.yaml):
+The harmonization of the data will be done with the following [mapping](harmonizer/mapping.yaml):
 
 #### Classes=>
 
