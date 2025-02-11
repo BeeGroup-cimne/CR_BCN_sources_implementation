@@ -36,7 +36,7 @@ mappings:
     po:
       - [a, saref:Device]
       - [a, s4syst:System]
-      - [ saref:makesMeasurement, cr_bcn:Measurement-$(weatherId) ]
+      - [ saref:makesMeasurement, cr_bcn:MeasurementTemperature-$(weatherId) ]
       - [ saref:measuresProperty, bigg:DryBulbTemperature ]
 
   device_humidity:
@@ -46,7 +46,7 @@ mappings:
     po:
       - [a, saref:Device]
       - [a, s4syst:System]
-      - [ saref:makesMeasurement, cr_bcn:Measurement-$(weatherId) ]
+      - [ saref:makesMeasurement, cr_bcn:MeasurementHumidity-$(weatherId) ]
       - [ saref:measuresProperty, bigg:RelativeHumidity ]
 
   measurement_temperature:
