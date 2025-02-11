@@ -10,9 +10,8 @@ import beelib
 def harmonize_endesa(config, **kwargs):
     # df_buildings = pd.DataFrame(data)
     
-    morph_config = 'sources/Weather_Scaling_Up/mapping.yaml'
+    morph_config = 'mapping.yaml'
     df_original = pd.read_csv('/home/mmartinez/Nextcloud/Beegroup/Projects/ClimateReady-BCN/WP3-VulnerabilityMap/Weather Scaling Up/test_csv_output_7days.csv', dtype=object)
-    df_original = df_original[:100]
     df_original["weatherId"] = df_original['weatherStation'].apply(lambda x: (x + '-weather').encode("utf-8"))
     df_original["weatherId"] = df_original['weatherId'].apply(lambda x: hashlib.sha256(x).hexdigest())
     df_original[['latitude','longitude']] = df_original['weatherStation'].str.split('_', expand=True).astype(float)
@@ -21,8 +20,8 @@ def harmonize_endesa(config, **kwargs):
     df.drop_duplicates(subset=['weatherStation'],inplace=True,keep='first')
 
     # Load to Neo4j
-    # documents = {"weather": df.to_dict(orient='records')}
-    # beelib.beetransformation.map_and_save(documents, morph_config, config)
+    documents = {"weather": df.to_dict(orient='records')}
+    beelib.beetransformation.map_and_save(documents, morph_config, config)
 
 
     freq = "P1M"
