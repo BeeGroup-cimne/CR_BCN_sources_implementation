@@ -9,7 +9,7 @@ import beelib
 
 def harmonize_endesa(config, **kwargs):
     morph_config = 'mapping.yaml'
-    df_original = pd.read_csv('/home/mmartinez/Nextcloud/Beegroup/Projects/ClimateReady-BCN/WP3-VulnerabilityMap/Weather Downscaling/test_csv_output_7days.csv', dtype=object)
+    df_original = pd.read_parquet('/home/mmartinez/Nextcloud/Beegroup/data/CR_BCN_modeling/weather_downscaling/Historical_ERA5Land/Predictions/prediction_202006-202007.parquet')
     df_original["weatherId"] = df_original['weatherStation'].apply(lambda x: (x + '-weather').encode("utf-8"))
     df_original["weatherId"] = df_original['weatherId'].apply(lambda x: hashlib.sha256(x).hexdigest())
     df_original[['latitude','longitude']] = df_original['weatherStation'].str.split('_', expand=True).astype(float)
@@ -17,6 +17,7 @@ def harmonize_endesa(config, **kwargs):
 
     # Load to Neo4j
     df = df_original.copy()
+    df['time'] = df['time'].dt.strftime('%Y-%m-%d %H:%M:%S')
     df.drop_duplicates(subset=['weatherStation'],inplace=True,keep='first')
     documents = {"weather": df.to_dict(orient='records')}
     beelib.beetransformation.map_and_save(documents, morph_config, config)
@@ -29,12 +30,7 @@ def harmonize_endesa(config, **kwargs):
     ts_buckets = 10000000
     buckets = 4
 
-    df_original['relativeHumidity'] = df_original['relativeHumidity'].astype(float) * 100
-    df_original['airTemperature'] = df_original['airTemperature'].astype(float) 
-    # df_original['forecastingTime'] = pd.to_datetime(df_original['forecastingTime'], format='%Y-%m-%dT%H:%M:%S.%f', errors='coerce')
-    df_original['time'] = pd.to_datetime(df_original['time'], format='%Y-%m-%dT%H:%M:%S.%f', errors='coerce')
-    
-    # df_original['forecastingTime'] = df_original['forecastingTime'].astype(int) // 10 ** 9
+    df_original['relativeHumidity'] = df_original['relativeHumidity'] * 100
     df_original['start'] = df_original['time'].astype(int) // 10 ** 9
     df_original['end'] = df_original['time'].apply(lambda x: (x + pd.offsets.MonthEnd(0))).astype(int) // 10 ** 9
     df_original["bucket"] = (df_original['start'].apply(int) // ts_buckets) % buckets
